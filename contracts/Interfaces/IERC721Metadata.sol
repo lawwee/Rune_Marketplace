@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Unlicense
 
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.10;
 
 import "./IERC721.sol";
 
