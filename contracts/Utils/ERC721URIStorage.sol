@@ -9,7 +9,7 @@ abstract contract ERC721URIStorage is ERC721 {
 
     mapping(uint256 => string) private _tokenURIs;
 
-    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         _requireMinted(tokenId);
 
         string memory _tokenURI = _tokenURIs[tokenId];

@@ -112,7 +112,7 @@ abstract contract ERC721 is ERC165, IERC721, IERC721Metadata, Context {
         _afterTokenTransfer(address(0), to, tokenId);
     }
 
-    function _burn(uint256 tokenId) internal {
+    function _burn(uint256 tokenId) internal virtual {
         address owner = ERC721.ownerOf(tokenId);
 
         _beforeTokenTransfer(owner, address(0), tokenId);
