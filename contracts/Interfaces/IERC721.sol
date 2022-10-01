@@ -13,7 +13,7 @@ interface IERC721 is IERC165 {
     function ownerOf(uint256 tokenId) external view returns (address owner);
     function safeTransferFrom(address from, address to, uint256 tokenId) external;
     // re-entrancy vulnerability to safetransferfrom
-    function transfeerFrom(address from, address to, uint256 tokenId) external;
+    function transferFrom(address from, address to, uint256 tokenId) external;
     function approve(address to, uint256 tokenId) external;
     function setApprovalFor(address to, bool _approved) external;
     function getApproved(uint256 tokenId) external view returns (address operator);
