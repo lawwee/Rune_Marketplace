@@ -60,6 +60,79 @@ abstract contract ERC721 is ERC165, IERC721, IERC721Metadata, Context {
         emit ApprovalForAll(owner, operator, approved);
     }
 
+    function _isApprovedOrOwner(address spender, uint256 tokenId) internal view returns (bool) {
+        address owner = ERC721.ownerOf(tokenId);
+        return (spender == owner || isApprovedForAll(owner, spender) || getApproved(tokenId) == spender);
+    }
+
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal {}
+
+    function _afterTokenTransfer(address from, address to, uint256 tokenId) internal {}
+
+    function _transfer(address from, address to, uint256 tokenId) internal {
+        require(ERC721.ownerOf(tokenId) == from, "ERC721: caller does not own token");
+        require(to != address(0), "ERC721: token cannot be sent to zero address");
+
+        _beforeTokenTransfer(from, to, tokenId);
+
+        // Check that token transfer was not made by hook
+        require(ERC721.ownerOf(tokenId) == from, "ERC721: caller does not own token");
+
+        delete _tokenApprovals[tokenId];
+
+        unchecked {
+            _balances[from] -= 1;
+            _balances[to] += 1;
+        }
+        _owners[tokenId] = to;
+
+        emit Transfer(from, to, tokenId);
+
+        _afterTokenTransfer(from, to, tokenId);
+
+    }
+
+    function _mint(address to, uint256 tokenId) internal {
+        require(to != address(0), "ERC721: cannot mint to a zero address");
+        require(!_exists(tokenId), "ERC721: token ID already minted");
+
+        _beforeTokenTransfer(address(0), to, tokenId);
+
+        // Check that token transfer was not made by hook
+        require(!_exists(tokenId), "ERC721: token ID already minted");
+        
+        unchecked {
+            _balances[to] += 1;
+        }
+
+        _owners[tokenId] = to;
+
+        emit Transfer(address(0), to, tokenId);
+
+        _afterTokenTransfer(address(0), to, tokenId);
+    }
+
+    function _burn(uint256 tokenId) internal {
+        address owner = ERC721.ownerOf(tokenId);
+
+        _beforeTokenTransfer(owner, address(0), tokenId);
+
+        // Update ownership in case token was transferred by _beforetokentransfer 
+        owner = ERC721.ownerOf(tokenId);
+
+        delete _tokenApprovals[tokenId];
+
+        unchecked {
+            _balances[owner] -= 1;
+        }
+
+        delete _owners[tokenId];
+
+        emit Transfer(owner, address(0), tokenId);
+
+        _afterTokenTransfer(owner, address(0), tokenId);
+    }
+
     function balanceOf(address owner) public view override returns (uint256) {
         require(owner != address(0), "ERC721: zero address is not a valid address");
         return _balances[owner];
@@ -108,6 +181,12 @@ abstract contract ERC721 is ERC165, IERC721, IERC721Metadata, Context {
 
     function setApprovalForAll(address operator, bool approved) public override {
         _setApprovalForAll(_msgSender(), operator, approved);
+    }
+
+    function transferFrom(address from, address to, uint256 tokenId) public override {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not owner nor approved to call");
+
+        _transfer(from, to, tokenId);
     }
 
 }
