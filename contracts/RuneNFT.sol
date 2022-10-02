@@ -16,6 +16,7 @@ contract RuneNFT is ERC721URIStorage, Ownable {
 
     mapping(address => uint256) public mintedWallets;
     mapping(string => uint256) public mintedRunes;
+    mapping(uint256 => string) internal tokenName;
 
     event NewNFTMinted(address indexed buyer, uint256 indexed tokenId);
 
@@ -40,14 +41,16 @@ contract RuneNFT is ERC721URIStorage, Ownable {
         require(_exists(tokenId), "RuneNFT: token does not exist");
 
         string memory baseURI = _baseURI();
+        string memory _tokenName = tokenName[tokenId];
 
-        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString(), ".json")) : ""; 
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, _tokenName, ".json")) : ""; 
     }
 
     function mintNFT(string memory _tokenURI) external payable {
         require(msg.value >= mintPrice, "RuneNFT: Not enough ether sent");
 
         uint256 newItemId = tokenIds;
+        tokenName[newItemId] = _tokenURI;
         string memory baseURI = _baseURI();
         string memory finalToken = string(abi.encodePacked(baseURI, _tokenURI, ".json"));
 
@@ -58,6 +61,7 @@ contract RuneNFT is ERC721URIStorage, Ownable {
         mintedWallets[_msgSender()]++;
         tokenIds++;
         mintedRunes[_tokenURI]++;
+        console.log(newItemId);
     }
 
     function mintedSingleRune(string memory _name) public view returns (uint256) {
