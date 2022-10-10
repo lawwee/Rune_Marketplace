@@ -6,14 +6,14 @@ import "./RuneNFT.sol";
 import "hardhat/console.sol";
 
 abstract contract Auction is RuneNFT {
-    mapping(uint256 => uint256) private highestBid;
-    mapping(uint256 => address) private highestBidder;
+    mapping(uint256 => uint256) private _highestBid;
+    mapping(uint256 => address) private _highestBidder;
     mapping(uint256 => bool) private AUCTION_IN_SESSION;
 
     event NewAuction(uint256 indexed tokenId, address indexed seller);
     event AuctionEnded(uint256 indexed tokenId, address indexed seller);
     event AuctionCancelled(uint256 indexed tokenId, address indexed seller);
-    event NewFloorPriceSet(uint256 indexed tokenId, uint256 indexed price, address indexed owner);
+    event NewBid(uint256 indexed tokenId, uint256 indexed price, address indexed owner);
 
     constructor() {
         console.log("Auction Contract deployed");
@@ -24,16 +24,40 @@ abstract contract Auction is RuneNFT {
         _;
     }
 
-    // SetStartingPrice(price and tokenid) -->
-        // Must be set before auction starts
-        // only called by nft owner
+    function _bid(uint256 _tokenId, uint256 _bidPrice) private {
+        require(_bidPrice >= 0, "Auction: Bid price cannot be 0");
+        uint256 price = _bidPrice * (1 ether);
+        _highestBid[_tokenId] = price;
+        _highestBidder[_tokenId] = _msgSender();
+        emit NewBid(_tokenId, price, _msgSender());
+    }
 
     function setStartingPrice(uint256 _tokenId, uint256 _bidPrice) nftOwner(_tokenId) public {
         require(AUCTION_IN_SESSION[_tokenId] == false, "Auction is already in session");
-        require(_bidPrice >= 0, "Starting price cannot be 0");
-        uint256 price = _bidPrice * (1 ether);
-        highestBid[_tokenId] = price;
+        _bid(_tokenId, _bidPrice);
     }
+
+    function currentBid(uint256 _tokenId) public view returns (uint256) {
+        require(_exists(_tokenId), "Auction: Token does not exist");
+        return _highestBid[_tokenId];
+    }
+
+    function highestBidder(uint256 _tokenId) public view returns (address) {
+        require(_exists(_tokenId), "Auction: Token does not exist");
+        return _highestBidder[_tokenId];
+    }
+
+
+
+//     AuctionStart(tokenid) / with reserve --> 
+        // function to start contract for nft
+        // must not be in session (AUCTION IN SESION)- use mapping
+        // can only be called three days after auction has been ended(if ever called)
+        // tokenid must exist
+        // must have been minted
+        // only be called by nft owner 
+
+//     function startAuction(uint256 _tokenId) 
 }
 
 // Auction/Bidding Contract
