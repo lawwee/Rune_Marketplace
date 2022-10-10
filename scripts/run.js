@@ -14,6 +14,21 @@ async function main() {
     txn = await runeContract.ownerOf(0)
     console.log(txn)
 
+    txn = await runeContract.currentBid(0)
+    console.log(txn)
+
+    txn = await runeContract.highestBidder(0)
+    console.log(txn)
+
+    txn = await runeContract.setStartBid(0, 2)
+    await txn.wait()
+    console.log("Set success")
+
+    txn = await runeContract.currentBid(0)
+    console.log(txn)
+
+    txn = await runeContract.highestBidder(0)
+    console.log(txn)
 }
 
 main().catch((error) => {

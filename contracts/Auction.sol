@@ -5,7 +5,7 @@ pragma solidity ^0.8.10;
 import "./RuneNFT.sol";
 import "hardhat/console.sol";
 
-abstract contract Auction is RuneNFT {
+contract Auction is RuneNFT {
     mapping(uint256 => uint256) private _highestBid;
     mapping(uint256 => address) private _highestBidder;
     mapping(uint256 => bool) private AUCTION_IN_SESSION;
@@ -15,7 +15,7 @@ abstract contract Auction is RuneNFT {
     event AuctionCancelled(uint256 indexed tokenId, address indexed seller);
     event NewBid(uint256 indexed tokenId, uint256 indexed price, address indexed owner);
 
-    constructor() {
+    constructor(string memory baseURI) RuneNFT(baseURI) {
         console.log("Auction Contract deployed");
     }
 
@@ -32,7 +32,7 @@ abstract contract Auction is RuneNFT {
         emit NewBid(_tokenId, price, _msgSender());
     }
 
-    function setStartingPrice(uint256 _tokenId, uint256 _bidPrice) nftOwner(_tokenId) public {
+    function setStartBid(uint256 _tokenId, uint256 _bidPrice) nftOwner(_tokenId) public {
         require(AUCTION_IN_SESSION[_tokenId] == false, "Auction is already in session");
         _bid(_tokenId, _bidPrice);
     }
