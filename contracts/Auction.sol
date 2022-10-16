@@ -8,6 +8,7 @@ import "hardhat/console.sol";
 contract Auction is RuneNFT {
     mapping(uint256 => uint256) private _highestBid;
     mapping(uint256 => address) private _highestBidder;
+    mapping(uint256 => uint256) private _ongoingBid;
     mapping(uint256 => bool) private AUCTION_IN_SESSION;
     mapping(uint256 => bool) private WITH_RESERVE;
 
@@ -22,14 +23,16 @@ contract Auction is RuneNFT {
 
     modifier nftOwner(uint256 _tokenId) {
         require(_exists(_tokenId), "Auction: Token does not exist");
-        require(_msgSender() == _ownerOf(_tokenId));
+        require(_msgSender() == _ownerOf(_tokenId), "Auction: Caller does not own contract");
         _;
     }
 
     function _bid(uint256 _tokenId, uint256 _bidPrice) private returns(bool) {
         require(_bidPrice >= 0, "Auction: Bid price cannot be 0");
-        uint256 price = _bidPrice * (1 ether);
-        _highestBid[_tokenId] = price;
+
+        uint256 price = _bidPrice;
+        _ongoingBid[_tokenId] = price;
+        _highestBid[_tokenId] = price * (1 ether);
         _highestBidder[_tokenId] = _msgSender();
         emit NewBid(_tokenId, price, _msgSender());
         return true;
@@ -42,7 +45,7 @@ contract Auction is RuneNFT {
 
     function currentBid(uint256 _tokenId) public view returns (uint256) {
         require(_exists(_tokenId), "Auction: Token does not exist");
-        return _highestBid[_tokenId];
+        return _ongoingBid[_tokenId];
     }
 
     function highestBidder(uint256 _tokenId) public view returns (address) {
@@ -58,7 +61,6 @@ contract Auction is RuneNFT {
 
         emit NewAuction(_tokenId, _msgSender(), _startBid);
     }
-
 
     function startAuctionWithReserve(uint256 _tokenId) external nftOwner(_tokenId) {
         require(AUCTION_IN_SESSION[_tokenId] == false, "Auction: Auction is already in session");
