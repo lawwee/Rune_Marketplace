@@ -9,9 +9,10 @@ contract Auction is RuneNFT {
     mapping(uint256 => uint256) private _highestBid;
     mapping(uint256 => address) private _highestBidder;
     mapping(uint256 => bool) private AUCTION_IN_SESSION;
+    mapping(uint256 => bool) private WITH_RESERVE;
 
-    event NewAuction(uint256 indexed tokenId, address indexed seller);
-    event AuctionEnded(uint256 indexed tokenId, address indexed seller);
+    event NewAuction(uint256 indexed tokenId, address indexed seller, uint256 indexed startBid);
+    event AuctionEnded(uint256 indexed tokenId, address indexed seller, uint256 indexed finalBid);
     event AuctionCancelled(uint256 indexed tokenId, address indexed seller);
     event NewBid(uint256 indexed tokenId, uint256 indexed price, address indexed owner);
 
@@ -20,20 +21,22 @@ contract Auction is RuneNFT {
     }
 
     modifier nftOwner(uint256 _tokenId) {
+        require(_exists(_tokenId), "Auction: Token does not exist");
         require(_msgSender() == _ownerOf(_tokenId));
         _;
     }
 
-    function _bid(uint256 _tokenId, uint256 _bidPrice) private {
+    function _bid(uint256 _tokenId, uint256 _bidPrice) private returns(bool) {
         require(_bidPrice >= 0, "Auction: Bid price cannot be 0");
         uint256 price = _bidPrice * (1 ether);
         _highestBid[_tokenId] = price;
         _highestBidder[_tokenId] = _msgSender();
+        return true;
         emit NewBid(_tokenId, price, _msgSender());
     }
 
     function setStartBid(uint256 _tokenId, uint256 _bidPrice) nftOwner(_tokenId) public {
-        require(AUCTION_IN_SESSION[_tokenId] == false, "Auction is already in session");
+        require(AUCTION_IN_SESSION[_tokenId] == false, "Auction: Auction is already in session");
         _bid(_tokenId, _bidPrice);
     }
 
@@ -47,65 +50,69 @@ contract Auction is RuneNFT {
         return _highestBidder[_tokenId];
     }
 
+    function startAuction(uint256 _tokenId) external nftOwner(_tokenId) {
+        require(AUCTION_IN_SESSION[_tokenId] == false, "Auction: Auction is already in session");
+        require(_highestBid[_tokenId] > 0, "Auction: Set a higher starting bid");
+        AUCTION_IN_SESSION[_tokenId] = true;
+        uint256 _startBid = _highestBid[_tokenId];
+
+        emit NewAuction(_tokenId, _msgSender(), _startBid);
+    }
 
 
-//     AuctionStart(tokenid) / with reserve --> 
-        // function to start contract for nft
-        // must not be in session (AUCTION IN SESION)- use mapping
-        // can only be called three days after auction has been ended(if ever called)
-        // tokenid must exist
-        // must have been minted
-        // only be called by nft owner 
+    function startAuctionWithReserve(uint256 _tokenId) external nftOwner(_tokenId) {
+        require(AUCTION_IN_SESSION[_tokenId] == false, "Auction: Auction is already in session");
+        require(_highestBid[_tokenId] > 0, "Auction: Set a higher starting bid");
+        AUCTION_IN_SESSION[_tokenId] = true;
+        WITH_RESERVE[_tokenId] = true;
+        uint256 _startBid = _highestBid[_tokenId];
 
-//     function startAuction(uint256 _tokenId) 
+        emit NewAuction(_tokenId, _msgSender(), _startBid);
+    }
+
+    function placeBid(uint256 _tokenId, uint256 _price) external {
+        require(ownerOf(_tokenId) != _msgSender(), "Auction: NFT owner cannot bid");
+        require(AUCTION_IN_SESSION[_tokenId] == true, "Auction: Auction is not in session");
+
+        uint256 currentPrice = currentBid(_tokenId);
+
+        require(_price > currentPrice, "Auction: New bid has to be more than previous bid");
+
+        _bid(_tokenId, _price);
+    }
+
+    function endAuction(uint256 _tokenId) external nftOwner(_tokenId) {
+        require(AUCTION_IN_SESSION[_tokenId] == true, "Auction: Auction is not in session");
+
+        AUCTION_IN_SESSION[_tokenId] = false;
+
+        emit AuctionEnded(_tokenId, _msgSender(), currentBid(_tokenId));
+    }
+
+    function cancelAuction(uint256 _tokenId) external nftOwner(_tokenId) {
+        require(AUCTION_IN_SESSION[_tokenId] == true, "Auction: Auction is not in session");
+        require(WITH_RESERVE[_tokenId] == true, "Auction: Auction was not started with reserve");
+
+        AUCTION_IN_SESSION[_tokenId] = false;
+        WITH_RESERVE[_tokenId] = false;
+
+        emit AuctionEnded(_tokenId, _msgSender(), currentBid(_tokenId));
+    }
+
+    function claimNFT(_tokenId) external returns(bool) {
+        require(_msgSender() == _highestBidder[_tokenId], "Auction: caller is not highest bidder");
+        require(_exists(_tokenId), "Auction: Token does not exist");
+
+        uint256 _price = _highestBid[_tokenId];
+        require(msg.value >= _price, "Auction: Not enough ether to claim token");
+
+        _price = 0;
+
+        _transferOwnership(_msgSender());
+
+        _highestBidder[_tokenId] = address(0);
+
+        return true;
+    }
+
 }
-
-// Auction/Bidding Contract
-
-// Variables and mapping and events
-// highest bid price - map id to price
-// highest bidder - map id to bidder
-// Auction in session
-// emit new bid
-// emit start of auction
-// emit end or cancellation of auction
-
-// 1. AuctionStart(tokenid) / with reserve --> 
-        // function to start contract for nft
-        // must not be in session (AUCTION IN SESION)- use mapping
-        // can only be called three days after auction has been ended(if ever called)
-        // tokenid must exist
-        // must have been minted
-        // only be called by nft owner 
-// 2. AuctionEnd(tokenid) -->
-        // tokenid must exist
-        // must be in session
-        // to end auction for nft
-        // must have started
-        // only be called by nft owner
-// 3. SetStartingPrice(price and tokenid) -->
-        // Must be set before auction starts
-        // only called by nft owner
-// 4. AuctionCancelled/Unlist(tokenid) -->
-        // called by owner
-        // Has to be in session
-        // tokenid must exist
-        // sets highest bidding to 0
-        // ends auction
-// 5. Placebid(bid price and tokenid) --> 
-        // tokenid exists
-        // function can only execute when auction starts
-        // cant be executed when auction ends or is cancelled
-        // nft owner cannot place bid
-        // price has to be more than normal price / highest bidding price
-        // price replaces current highestbidding price
-        // price before auction starts is set as highestbid
-// 6. CurrentBidPrice()        
-// 7. ClaimNFT() -->
-        // tokenid must exist
-        // caller must be who owns highest bid
-        // must have enough balance as highest bid to claim NFT
-        // resets highest bid to 0
-        // resets highest bidder to a zero address
-        // transfers nft ownership to highest bidder
-// 8. GetHighestBidder()
