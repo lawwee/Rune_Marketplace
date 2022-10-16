@@ -31,8 +31,8 @@ contract Auction is RuneNFT {
         uint256 price = _bidPrice * (1 ether);
         _highestBid[_tokenId] = price;
         _highestBidder[_tokenId] = _msgSender();
-        return true;
         emit NewBid(_tokenId, price, _msgSender());
+        return true;
     }
 
     function setStartBid(uint256 _tokenId, uint256 _bidPrice) nftOwner(_tokenId) public {
@@ -99,7 +99,7 @@ contract Auction is RuneNFT {
         emit AuctionEnded(_tokenId, _msgSender(), currentBid(_tokenId));
     }
 
-    function claimNFT(_tokenId) external returns(bool) {
+    function claimNFT(uint256 _tokenId) payable public returns(bool) {
         require(_msgSender() == _highestBidder[_tokenId], "Auction: caller is not highest bidder");
         require(_exists(_tokenId), "Auction: Token does not exist");
 
