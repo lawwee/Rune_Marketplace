@@ -100,6 +100,9 @@ contract Auction is RuneNFT {
         AUCTION_IN_SESSION[_tokenId] = false;
         WITH_RESERVE[_tokenId] = false;
 
+        _highestBid[_tokenId] = 0;
+        _highestBidder[_tokenId] = address(0);
+
         emit AuctionEnded(_tokenId, _msgSender(), currentBid(_tokenId));
     }
 
