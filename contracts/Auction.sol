@@ -8,7 +8,6 @@ import "hardhat/console.sol";
 contract Auction is RuneNFT {
     mapping(uint256 => uint256) private _highestBid;
     mapping(uint256 => address) private _highestBidder;
-    mapping(uint256 => uint256) private _ongoingBid;
     mapping(uint256 => bool) private AUCTION_IN_SESSION;
     mapping(uint256 => bool) private WITH_RESERVE;
 
@@ -30,22 +29,21 @@ contract Auction is RuneNFT {
     function _bid(uint256 _tokenId, uint256 _bidPrice) private returns(bool) {
         require(_bidPrice >= 0, "Auction: Bid price cannot be 0");
 
-        uint256 price = _bidPrice;
-        _ongoingBid[_tokenId] = price;
-        _highestBid[_tokenId] = price * (1 ether);
+        _highestBid[_tokenId] = _bidPrice;
         _highestBidder[_tokenId] = _msgSender();
-        emit NewBid(_tokenId, price, _msgSender());
+        emit NewBid(_tokenId, _bidPrice, _msgSender());
         return true;
     }
 
     function setStartBid(uint256 _tokenId, uint256 _bidPrice) nftOwner(_tokenId) public {
         require(AUCTION_IN_SESSION[_tokenId] == false, "Auction: Auction is already in session");
-        _bid(_tokenId, _bidPrice);
+        uint256 price = _bidPrice * (1 ether);
+        _bid(_tokenId, price);
     }
 
     function currentBid(uint256 _tokenId) public view returns (uint256) {
         require(_exists(_tokenId), "Auction: Token does not exist");
-        return _ongoingBid[_tokenId];
+        return _highestBid[_tokenId];
     }
 
     function highestBidder(uint256 _tokenId) public view returns (address) {
@@ -72,15 +70,19 @@ contract Auction is RuneNFT {
         emit NewAuction(_tokenId, _msgSender(), _startBid);
     }
 
+    function auctionState(uint256 _tokenId) public view returns(bool) {
+        return AUCTION_IN_SESSION[_tokenId];
+    }
+
     function placeBid(uint256 _tokenId, uint256 _price) external {
         require(ownerOf(_tokenId) != _msgSender(), "Auction: NFT owner cannot bid");
         require(AUCTION_IN_SESSION[_tokenId] == true, "Auction: Auction is not in session");
 
-        uint256 currentPrice = currentBid(_tokenId);
+        uint256 currentPrice = _price * (1 ether);
 
-        require(_price > currentPrice, "Auction: New bid has to be more than previous bid");
+        require(currentPrice > currentBid(_tokenId), "Auction: New bid has to be more than previous bid");
 
-        _bid(_tokenId, _price);
+        _bid(_tokenId, currentPrice);
     }
 
     function endAuction(uint256 _tokenId) external nftOwner(_tokenId) {

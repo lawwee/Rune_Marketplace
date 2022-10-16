@@ -30,12 +30,16 @@ async function main() {
     txn = await runeContract.currentBid(0)
     console.log("Current bid:", hre.ethers.utils.formatEther(txn))
 
-    txn = await runeContract.placeBid(0, 4)
+    txn = await runeContract.placeBid(0, 3)
     await txn.wait()
     console.log("Bid success");
 
     txn = await runeContract.currentBid(0)
     console.log("Current bid:", hre.ethers.utils.formatEther(txn))
+
+    txn = await runeContract.endAuction(0)
+    await txn.wait()
+    console.log("Auction Ended");
 
 }
 
