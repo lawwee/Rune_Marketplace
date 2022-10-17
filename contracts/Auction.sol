@@ -107,8 +107,9 @@ contract Auction is RuneNFT {
     }
 
     function claimNFT(uint256 _tokenId) payable public returns(bool) {
-        require(_msgSender() == _highestBidder[_tokenId], "Auction: caller is not highest bidder");
         require(_exists(_tokenId), "Auction: Token does not exist");
+        require(_msgSender() == _highestBidder[_tokenId], "Auction: caller is not highest bidder");
+        require(AUCTION_IN_SESSION[_tokenId] == false, "Auction: Auction is in session");
 
         uint256 _price = _highestBid[_tokenId];
         require(msg.value >= _price, "Auction: Not enough ether to claim token");
@@ -120,6 +121,10 @@ contract Auction is RuneNFT {
         _highestBidder[_tokenId] = address(0);
 
         return true;
+    }
+
+    function transfersomething() public {
+        // require(msg.value);
     }
 
 }

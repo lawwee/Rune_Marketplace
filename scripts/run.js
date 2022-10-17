@@ -15,6 +15,9 @@ async function main() {
     txn = await runeContract.connect(another).mintNFT("Odin", {value: hre.ethers.utils.parseEther("0.0001")})
     await txn.wait()
 
+    txn = await runeContract.ownerOf(0)
+    console.log(txn);
+
     txn = await runeContract.connect(another).setStartBid(0, 2)
     await txn.wait()
     console.log("success")
@@ -37,10 +40,16 @@ async function main() {
     txn = await runeContract.currentBid(0)
     console.log("Current bid:", hre.ethers.utils.formatEther(txn))
 
-    txn = await runeContract.connect(another).cancelAuction(0)
+    txn = await runeContract.connect(another).endAuction(0)
     await txn.wait()
-    console.log("Auction Cancelled");
+    console.log("Auction Ended");
 
+    txn = await runeContract.claimNFT(0, {value: hre.ethers.utils.parseEther("3")})
+    await txn.wait()
+    console.log("successfully transferred");
+
+    txn = await runeContract.ownerOf(0)
+    console.log(txn);
 
 }
 
