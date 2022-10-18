@@ -57,6 +57,8 @@ contract Auction is RuneNFT {
         AUCTION_IN_SESSION[_tokenId] = true;
         uint256 _startBid = _highestBid[_tokenId];
 
+        approve(address(this), _tokenId);
+
         emit NewAuction(_tokenId, _msgSender(), _startBid);
     }
 
@@ -116,15 +118,13 @@ contract Auction is RuneNFT {
 
         _price = 0;
 
-        _transferOwnership(_msgSender());
+        address owner = ERC721.ownerOf(_tokenId);
+
+        ERC721.transferFrom(owner, _msgSender(), _tokenId);
 
         _highestBidder[_tokenId] = address(0);
 
         return true;
-    }
-
-    function transfersomething() public {
-        // require(msg.value);
     }
 
 }

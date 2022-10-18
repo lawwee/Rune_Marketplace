@@ -22,13 +22,13 @@ async function main() {
     await txn.wait()
     console.log("success")
 
-    txn = await runeContract.connect(another).startAuctionWithReserve(0)
-    await txn.wait()
-    console.log("Auction with res success")
-
-    // txn = await runeContract.connect(another).startAuction(0)
+    // txn = await runeContract.connect(another).startAuctionWithReserve(0)
     // await txn.wait()
-    // console.log("Auction start")
+    // console.log("Auction with res success")
+
+    txn = await runeContract.connect(another).startAuction(0)
+    await txn.wait()
+    console.log("Auction start")
 
     txn = await runeContract.currentBid(0)
     console.log("Current bid:", hre.ethers.utils.formatEther(txn))
