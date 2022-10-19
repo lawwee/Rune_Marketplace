@@ -9,6 +9,8 @@ async function main() {
     const runeContract = await runeContractFactory.deploy(baseURI)
     await runeContract.deployed()
 
+    console.log("Contract deployed to:", runeContract.address)
+
     // let balance = await hre.ethers.provider.getBalance(runeContract.address);
     // console.log("Another Balance", hre.ethers.utils.formatEther(balance));
 
@@ -37,19 +39,22 @@ async function main() {
     await txn.wait()
     console.log("Bid success");
 
-    txn = await runeContract.currentBid(0)
-    console.log("Current bid:", hre.ethers.utils.formatEther(txn))
+    txn = await runeContract.getApproved(0)
+    console.log(txn)
 
-    txn = await runeContract.connect(another).endAuction(0)
-    await txn.wait()
-    console.log("Auction Ended");
+    // txn = await runeContract.currentBid(0)
+    // console.log("Current bid:", hre.ethers.utils.formatEther(txn))
 
-    txn = await runeContract.claimNFT(0, {value: hre.ethers.utils.parseEther("3")})
-    await txn.wait()
-    console.log("successfully transferred");
+    // txn = await runeContract.connect(another).endAuction(0)
+    // await txn.wait()
+    // console.log("Auction Ended");
 
-    txn = await runeContract.ownerOf(0)
-    console.log(txn);
+    // txn = await runeContract.claimNFT(0, {value: hre.ethers.utils.parseEther("3")})
+    // await txn.wait()
+    // console.log("successfully transferred");
+
+    // txn = await runeContract.ownerOf(0)
+    // console.log(txn);
 
 }
 
