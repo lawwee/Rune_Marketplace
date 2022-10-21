@@ -16,6 +16,8 @@ contract Auction is RuneNFT {
     event AuctionCancelled(uint256 indexed tokenId, address indexed seller);
     event NewBid(uint256 indexed tokenId, uint256 indexed price, address indexed owner);
 
+    RuneNFT public nftcontract;
+
     constructor(string memory baseURI) RuneNFT(baseURI) {
         console.log("Auction Contract deployed");
     }
@@ -57,7 +59,7 @@ contract Auction is RuneNFT {
         AUCTION_IN_SESSION[_tokenId] = true;
         uint256 _startBid = _highestBid[_tokenId];
 
-        approve(address(this), _tokenId);
+        approve(address(0), _tokenId);
 
         emit NewAuction(_tokenId, _msgSender(), _startBid);
     }
@@ -120,7 +122,11 @@ contract Auction is RuneNFT {
 
         address owner = ERC721.ownerOf(_tokenId);
 
-        ERC721.transferFrom(owner, _msgSender(), _tokenId);
+        // Auction.address;
+
+        nftcontract.transferFrom(owner, _msgSender(), _tokenId);
+
+        // ERC721.transferFrom(owner, _msgSender(), _tokenId);
 
         _highestBidder[_tokenId] = address(0);
 
