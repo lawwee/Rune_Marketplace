@@ -59,7 +59,7 @@ contract Auction is RuneNFT {
         AUCTION_IN_SESSION[_tokenId] = true;
         uint256 _startBid = _highestBid[_tokenId];
 
-        approve(address(0), _tokenId);
+        approve(RuneNFT(nftcontract), _tokenId);
 
         emit NewAuction(_tokenId, _msgSender(), _startBid);
     }
