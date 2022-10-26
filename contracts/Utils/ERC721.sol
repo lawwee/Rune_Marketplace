@@ -4,6 +4,7 @@ pragma solidity ^0.8.10;
 
 import "../Interfaces/IERC721.sol";
 import "../Interfaces/IERC721Metadata.sol";
+import "../Interfaces/IERC721Receiver.sol";
 import "../Libraries/Address.sol";
 import "../Libraries/Strings.sol";
 import "./Context.sol";
@@ -132,6 +133,27 @@ abstract contract ERC721 is ERC165, IERC721, IERC721Metadata, Context {
 
         _afterTokenTransfer(owner, address(0), tokenId);
     }
+
+    function _checkOnERC721Received(
+        address from, address to, uint256 tokenId, bytes memory data
+        ) private returns (bool) {
+            if (to.isContract()) {
+                try IERC721Receiver(to).onIERC721Received(_msgSender(), from, tokenId, data) returns(bytes4 retval) {
+                    return retval == IERC721Receiver.onIERC721Received.selector;
+                } catch (bytes memory reason) {
+                    if (reason.length == 0) {
+                        revert("ERC721: transfer to a non ERC721Receiver implementer");
+                    } else {
+                        assembly {
+                            revert(add(32, reason), mload(reason))
+                        }
+                    }
+                }
+            } else {
+                return true;
+            }
+        }
+
 
     function balanceOf(address owner) public view override returns (uint256) {
         require(owner != address(0), "ERC721: zero address is not a valid address");
