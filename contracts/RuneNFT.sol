@@ -10,7 +10,7 @@ import "hardhat/console.sol";
 contract RuneNFT is ERC721URIStorage, Ownable {
     using Strings for uint256;
 
-    uint256 private mintPrice = 0.0001 ether;
+    uint256 private mintPrice = 100 ether;
     string _baseTokenURI;
     uint256 private tokenIds;
 

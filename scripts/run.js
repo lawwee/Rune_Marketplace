@@ -11,22 +11,25 @@ async function main() {
 
     console.log("Contract deployed to:", runeContract.address)
 
-    let balance = await hre.ethers.provider.getBalance(runeContract.address);
-    console.log("Another Balance", hre.ethers.utils.formatEther(balance));
+    // let balance = await hre.ethers.provider.getBalance(runeContract.address);
+    // console.log("Another Balance", hre.ethers.utils.formatEther(balance));
 
-    txn = await runeContract.connect(another).mintNFT("Odin", {value: hre.ethers.utils.parseEther("0.0001")})
+    txn = await runeContract.connect(another).mintNFT("Odin", {value: hre.ethers.utils.parseEther("100")})
     await txn.wait()
 
     txn = await runeContract.ownerOf(0)
     console.log(txn);
 
-    txn = await runeContract.connect(another).setStartBid(0, {value: hre.ethers.utils.parseEther("2")})
+    txn = await runeContract.connect(another).setStartBid(0, {value: hre.ethers.utils.parseEther("200")})
     await txn.wait()
     console.log("success")
 
     // txn = await runeContract.connect(another).startAuctionWithReserve(0)
     // await txn.wait()
     // console.log("Auction with res success")
+
+    balance = await hre.ethers.provider.getBalance(another.address);
+    console.log("Another Balance", hre.ethers.utils.formatEther(balance));
 
     txn = await runeContract.connect(another).startAuction(0)
     await txn.wait()
@@ -35,29 +38,22 @@ async function main() {
     txn = await runeContract.currentBid(0)
     console.log("Current bid:", hre.ethers.utils.formatEther(txn))
 
-    txn = await runeContract.placeBid(0, {value: hre.ethers.utils.parseEther("3")})
+    txn = await runeContract.placeBid(0, {value: hre.ethers.utils.parseEther("500")})
     await txn.wait()
     console.log("Bid success");
 
     txn = await runeContract.currentBid(0)
     console.log("Current bid:", hre.ethers.utils.formatEther(txn))
 
-    txn = await runeContract.connect(randomUser).placeBid(0, {value: hre.ethers.utils.parseEther("5")})
+    txn = await runeContract.connect(another).endAuction(0)
     await txn.wait()
-    console.log("Bid success");
+    console.log("Ended Auction");
 
-    txn = await runeContract.currentBid(0)
-    console.log("Current bid:", hre.ethers.utils.formatEther(txn))
-
-    txn = await runeContract.placeBid(0, {value: hre.ethers.utils.parseEther("7")})
-    await txn.wait()
-    console.log("Bid success");
-
-    txn = await runeContract.currentBid(0)
-    console.log("Current bid:", hre.ethers.utils.formatEther(txn))
-
-    balance = await hre.ethers.provider.getBalance(runeContract.address);
+    balance = await hre.ethers.provider.getBalance(another.address);
     console.log("Another Balance", hre.ethers.utils.formatEther(balance));
+
+    txn = await runeContract.ownerOf(0)
+    console.log(txn);
 
     // txn = await runeContract.getApproved(0)
     // console.log(txn)

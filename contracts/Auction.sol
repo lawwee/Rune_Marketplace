@@ -56,9 +56,11 @@ contract Auction is RuneNFT {
         require(AUCTION_IN_SESSION[_tokenId] == false, "Auction: Auction is already in session");
         require(_highestBid[_tokenId] > 0, "Auction: Set a higher starting bid");
         AUCTION_IN_SESSION[_tokenId] = true;
+
+        // address payable _nftOwner = _msgSender();
         uint256 _startBid = _highestBid[_tokenId];
 
-        emit NewAuction(_tokenId, _msgSender(), _startBid);
+        emit NewAuction(_tokenId, payable(_msgSender()), _startBid);
     }
 
     function startAuctionWithReserve(uint256 _tokenId) external nftOwner(_tokenId) {
@@ -94,6 +96,16 @@ contract Auction is RuneNFT {
 
         AUCTION_IN_SESSION[_tokenId] = false;
 
+        address currentHighestBidder = _highestBidder[_tokenId];
+        uint256 highestBid = _highestBid[_tokenId];
+
+        _highestBid[_tokenId] = 0;
+        _highestBidder[_tokenId] = address(0);
+
+        safeTransferFrom(_msgSender(), currentHighestBidder, _tokenId, " ");
+
+        payable(_msgSender()).transfer(highestBid);
+
         emit AuctionEnded(_tokenId, _msgSender(), currentBid(_tokenId));
     }
 
@@ -119,8 +131,6 @@ contract Auction is RuneNFT {
         require(msg.value >= _price, "Auction: Not enough ether to claim token");
 
         _price = 0;
-
-        address owner = ERC721.ownerOf(_tokenId);
 
         _highestBidder[_tokenId] = address(0);
 
