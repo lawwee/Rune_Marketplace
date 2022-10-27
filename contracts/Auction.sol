@@ -10,6 +10,7 @@ contract Auction is RuneNFT {
     mapping(uint256 => address) private _highestBidder;
     mapping(uint256 => bool) private AUCTION_IN_SESSION;
     mapping(uint256 => bool) private WITH_RESERVE;
+    mapping(uint256 => mapping(address => uint256)) private pendingReserves;
 
     event NewAuction(uint256 indexed tokenId, address indexed seller, uint256 indexed startBid);
     event AuctionEnded(uint256 indexed tokenId, address indexed seller, uint256 indexed finalBid);
@@ -57,9 +58,6 @@ contract Auction is RuneNFT {
         AUCTION_IN_SESSION[_tokenId] = true;
         uint256 _startBid = _highestBid[_tokenId];
 
-        // safeTransferFrom(_msgSender(), address(this), _tokenId, "send");
-        approve(address(this), _tokenId);
-
         emit NewAuction(_tokenId, _msgSender(), _startBid);
     }
 
@@ -77,14 +75,17 @@ contract Auction is RuneNFT {
         return AUCTION_IN_SESSION[_tokenId];
     }
 
-    function placeBid(uint256 _tokenId, uint256 _price) external {
+    function placeBid(uint256 _tokenId) payable external {
         require(ownerOf(_tokenId) != _msgSender(), "Auction: NFT owner cannot bid");
         require(AUCTION_IN_SESSION[_tokenId] == true, "Auction: Auction is not in session");
 
-        uint256 currentPrice = _price * (1 ether);
+        uint256 currentPrice = msg.value;
 
-        require(currentPrice > currentBid(_tokenId), "Auction: New bid has to be more than previous bid");
+        require(currentPrice > _highestBid[_tokenId], "Auction: New bid has to be more than previous bid");
 
+        if (_highestBid[_tokenId] != 0) {
+            pendingReserves[_tokenId][_msgSender()] = currentPrice;
+        }
         _bid(_tokenId, currentPrice);
     }
 
