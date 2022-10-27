@@ -152,7 +152,12 @@ abstract contract ERC721 is ERC165, IERC721, IERC721Metadata, Context {
             } else {
                 return true;
             }
-        }
+    }
+
+    function _safeTransfer(address from, address to, uint256 tokenId, bytes memory data) internal virtual {
+        _transfer(from, to, tokenId);
+        require(_checkOnERC721Received(from, to, tokenId, data), "ERC721: Transfer to a non ERC721Receiver implementer");
+    }
 
 
     function balanceOf(address owner) public view override returns (uint256) {
@@ -210,5 +215,10 @@ abstract contract ERC721 is ERC165, IERC721, IERC721Metadata, Context {
 
         _transfer(from, to, tokenId);
     }
+
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual override {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not owner nor approved to call");
+        _safeTransfer(from, to, tokenId, data);
+    } 
 
 }
