@@ -101,6 +101,7 @@ contract Auction is RuneNFT {
 
         _highestBid[_tokenId] = 0;
         _highestBidder[_tokenId] = address(0);
+        pendingReserves[_tokenId][currentHighestBidder] = 0;
 
         safeTransferFrom(_msgSender(), currentHighestBidder, _tokenId, " ");
 
@@ -122,19 +123,15 @@ contract Auction is RuneNFT {
         emit AuctionEnded(_tokenId, _msgSender(), currentBid(_tokenId));
     }
 
-    function claimNFT(uint256 _tokenId) payable public returns(bool) {
-        require(_exists(_tokenId), "Auction: Token does not exist");
-        require(_msgSender() == _highestBidder[_tokenId], "Auction: caller is not highest bidder");
-        require(AUCTION_IN_SESSION[_tokenId] == false, "Auction: Auction is in session");
+    function withdrawReserve(uint256 _tokenId) external returns(bool) {
+        require(_msgSender() != address(0), "Auction: Transfer to zero address not allowed");
+        require(AUCTION_IN_SESSION[_tokenId] == false, "Auction: Auction is still in session");
+        uint256 _amount = pendingReserves[_tokenId][_msgSender()];
 
-        uint256 _price = _highestBid[_tokenId];
-        require(msg.value >= _price, "Auction: Not enough ether to claim token");
-
-        _price = 0;
-
-        _highestBidder[_tokenId] = address(0);
-
+        if (_amount > 0) {
+            pendingReserves[_tokenId][_msgSender()] = 0;
+        }
+        payable(_msgSender()).transfer(_amount);
         return true;
     }
-
 }
