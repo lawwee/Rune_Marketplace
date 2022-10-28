@@ -5,6 +5,8 @@ pragma solidity ^0.8.10;
 import "./RuneNFT.sol";
 import "hardhat/console.sol";
 
+// 0x5D991817136F19eAFa2925Da189642d309b9888f
+
 contract Auction is RuneNFT {
     mapping(uint256 => uint256) private _highestBid;
     mapping(uint256 => address) private _highestBidder;
