@@ -41,3 +41,18 @@ This section has to do with all the functionaities as required to fulfill the ru
 * The getApproved() Function - This aims to check which address has access to manage a token besides its owner. It takes in one parameter which is "tokenId", and returns the "operator" address that has access to it.
 
 * The isApprovedForAll() Function - takes teo parameters namely owner and operator. It checks to see if the address "owner" has approved the "operator" to manage the tokens in "owner's" address, and then returns a boolean value based on the state.
+
+* The tokenURI() Function - this takes in one parameter which represents the "tokenId" and returns the URI link to the metadata of said tokenId.
+
+
+**RuneNFT**
+
+This section basically contains the functionalities related to the main marketplace that allows users to buy and claim their NFTs
+
+* The NewNFTMinted Event - it gets triggered when a new NFT has been minted and emits two details namely buyer and tokenId. "buyer" being the person who minted a new one and "tokenId" being the ID assigned to the newly minted NFT.
+
+* The getPrice() Function - it takes no parameters and simply returns the general price of the NFTs.
+
+* The getMintedTokens() Function - also takes no parameter and returns the tokenIds that have already been minted.
+
+* The mintNFT() Function - it allows users mint a new NFT into their wallet address. It takes in one parameter which is the name of the NFT they would like to buy, it also checks if the amount of money sent is not enough, and rejects it accordingly.
